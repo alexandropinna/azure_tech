@@ -1,0 +1,141 @@
+# Variables para el módulo resource_group
+name     = "example-resources"
+location = "East US"
+
+# Variables para el módulo network_interfaces
+network_interface_names        = ["nic-vm1", "nic-vm2"]
+private_ip_address_allocation  = "Dynamic"
+
+# Variables para el módulo virtual_network
+virtual_network_name = "example-vnet"
+address_space        = ["10.0.0.0/16"]
+
+# Variables para el módulo subnet
+subnet_name          = "example-subnet"
+address_prefixes     = ["10.0.1.0/24"]
+
+# Variables para el módulo maintenance_configuration
+maintenance_config_name = "example-mc"
+scope                  = "SQLDB"
+tags                   = {Env = "prod"}
+
+# Variables para el módulo windows_virtual_machines
+vm_details = [
+  {
+    name = "TESTDC01",
+    size = "Standard_D2s_v3",
+    tags = {
+      AutoPatching = "FALSE",
+      Defender     = "TRUE"
+    }
+  },
+  {
+    name = "TESTAPP01",
+    size = "Standard_D2s_v3",
+    tags = {
+      AutoPatching = "TRUE",
+      Defender     = "TRUE"
+    }
+  }
+]
+admin_username       = "adminuser"
+admin_password       = "P@ssw0rd123!"
+
+# Variables para el módulo azure_defender
+tier          = "Standard"
+resource_type = "VirtualMachines"
+
+# Variables para el módulo policy_definitions
+autopatching_policy_name          = "autopatching-policy"
+policy_type                       = "Custom"
+mode                              = "Indexed"
+autopatching_policy_display_name  = "Enable Auto Patching for VMs with AutoPatching=TRUE"
+autopatching_policy_rule          = <<POLICY_RULE
+{
+  "if": {
+    "allOf": [
+      {
+        "field": "type",
+        "equals": "Microsoft.Compute/virtualMachines"
+      },
+      {
+        "field": "tags.AutoPatching",
+        "equals": "TRUE"
+      }
+    ]
+  },
+  "then": {
+    "effect": "deployIfNotExists",
+    "details": {
+      "type": "Microsoft.Maintenance/maintenanceConfigurations",
+      "existenceCondition": {
+        "allOf": [
+          {
+            "field": "Microsoft.Maintenance/maintenanceConfigurations/configurationName",
+            "equals": "example-mc"
+          }
+        ]
+      },
+      "roleDefinitionIds": [
+        "/subscriptions/YOUR_SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleDefinitions/YOUR_ROLE_DEFINITION_ID"
+      ],
+      "deployment": {
+        "properties": {
+          "mode": "incremental",
+          "template": {
+            "$schema": "https://schema.management.azure.com/providers/Microsoft.Resources/deploymentTemplate?api-version=2019-04-01",
+            "contentVersion": "1.0.0.0",
+            "resources": []
+          }
+        }
+      }
+    }
+  }
+}
+POLICY_RULE
+
+defender_policy_name              = "defender-policy"
+defender_policy_display_name      = "Enable Defender for VMs with Defender=TRUE"
+defender_policy_rule              = <<POLICY_RULE
+{
+  "if": {
+    "allOf": [
+      {
+        "field": "type",
+        "equals": "Microsoft.Compute/virtualMachines"
+      },
+      {
+        "field": "tags.Defender",
+        "equals": "TRUE"
+      }
+    ]
+  },
+  "then": {
+    "effect": "deployIfNotExists",
+    "details": {
+      "type": "Microsoft.Security/defenderSettings",
+      "existenceCondition": {
+        "allOf": [
+          {
+            "field": "Microsoft.Security/defenderSettings/securityStatus",
+            "equals": "On"
+          }
+        ]
+      },
+      "roleDefinitionIds": [
+        "/subscriptions/YOUR_SUBSCRIPTION_ID/providers/Microsoft.Authorization/roleDefinitions/YOUR_ROLE_DEFINITION_ID"
+      ],
+      "deployment": {
+        "properties": {
+          "mode": "incremental",
+          "template": {
+            "$schema": "https://schema.management.azure.com/providers/Microsoft.Resources/deploymentTemplate?api-version=2019-04-01",
+            "contentVersion": "1.0.0.0",
+            "resources": []
+          }
+        }
+      }
+    }
+  }
+}
+POLICY_RULE
