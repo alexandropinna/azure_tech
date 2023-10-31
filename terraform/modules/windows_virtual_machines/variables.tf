@@ -2,7 +2,7 @@
 
 variable "vm_details" {
   description = "A list of maps, each containing the details for a VM."
-  type        = list(object({
+  type = list(object({
     name = string
     size = string
     tags = map(string)

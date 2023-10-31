@@ -8,4 +8,10 @@ resource "azurerm_maintenance_configuration" "maintenance" {
   scope               = var.scope
 
   tags = var.tags
+
+  window {
+    recur_every     = "2 weeks"
+    start_date_time = "2023-11-04T02:00:00Z"
+    time_zone       = "Pacific Standard Time"
+  }
 }
